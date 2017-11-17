@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>AI Instagram Tagger</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tachyons/4.9.0/tachyons.css" />
+    <link href="https://fonts.googleapis.com/css?family=Barlow+Semi+Condensed|Lobster" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Barlow Semi Condensed', sans-serif;
+      }
+
+      h1,h2,h3,h4,h5 {
+        font-family: 'Lobster', cursive;
+      }
+    </style>
+
+    <script src="//cdn.rawgit.com/fdaciuk/ajax/v2.3.0/dist/ajax.min.js"></script>
+    <script>
+      function formatTags(tags) {
+        var str = "";
+        for (var i = 0; i < tags.length; i++) {
+          str += '<a href="https://www.instagram.com/explore/tags/">#' + tags[i] + '</a> ';
+        }
+        return str
+      }
+
+      function getTags() {
+        var divs = ["caption", "likely", "best", "with", "liked"];
+        for (var i = 0; i < divs.length; i++) {
+          document.getElementById(divs[i]).style.display = "none";
+          document.getElementById(divs[i] + "_header").style.display = "none";
+        }
+
+        var url = document.getElementById("url").value;
+        var password = document.getElementById("password").value;
+        ajax().get('/api?url=' + url + '&password=' + password).then(function (response, xhr) {
+          document.getElementById("results").style.display = "block";
+
+          if (response.image != null) {
+            document.getElementById("image").setAttribute("src", response.image);
+          }
+
+          if (response.common != null) {
+            document.getElementById("likely").innerHTML = formatTags(response.common);
+            document.getElementById("likely").style.display = "block";
+            document.getElementById("likely_header").style.display = "block";
+          }
+
+          if (response.caption != null) {
+            document.getElementById("caption").innerHTML = response.caption;
+            document.getElementById("caption").style.display = "block";
+            document.getElementById("caption_header").style.display = "block";
+          }
+
+          if (response.best != null) {
+            document.getElementById("best").innerHTML = formatTags(response.best);
+            document.getElementById("best").style.display = "block";
+            document.getElementById("best_header").style.display = "block";
+          }
+
+          if (response.expanded != null) {
+            document.getElementById("with").innerHTML = formatTags(response.expanded);
+            document.getElementById("with").style.display = "block";
+            document.getElementById("with_header").style.display = "block";
+          }
+
+          if (response.most_liked != null) {
+            document.getElementById("liked").innerHTML = formatTags(Object.keys(response.most_liked));
+            document.getElementById("liked").style.display = "block";
+            document.getElementById("liked_header").style.display = "block";
+          }
+        })
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="mw7 center">
+      <h1>AI Instagram Tagger</h1>
+
+      <p>Message me for the password - it costs money to use the cloud APIs!</p>
+      <input id="url" type="text" class="w5" placeholder="instagram url" value="https://www.instagram.com/p/Bat6k0UHemQ"/>
+      <input id="password" type="text" class="w5" placeholder="password"/>
+      <button onclick="getTags()">Get Tagged</button>
+      <br />
+      <img id="image" class="mt2" src="" width="200">
+
+      <div id="results" style="display: none">
+        <h2 id="caption_header">Caption</h2>
+        <div id="caption"></div>
+
+        <h2 id="likely_header">Most Likely</h2>
+        <div id="likely"></div>
+
+        <h2 id="best_header">Best Scoring</h2>
+        <div id="best"></div>
+
+        <h2 id="with_header">Commonly Used With</h2>
+        <div id="with"></div>
+
+        <h2 id="liked_header">Most Liked For This Type</h2>
+        <div id="liked"></div>
+      </div>
+    </div>
+  </body>
+</html>

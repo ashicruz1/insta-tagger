@@ -16,6 +16,7 @@ class ImageDownloader
     page = load_and_parse_page(url)
     image_url = extract_image_url(page)
     save_image(image_url, name)
+    image_url
   end
 
   private
@@ -165,7 +166,7 @@ class TagScorer
 end
 
 def process(url)
-  ImageDownloader.download_image(url)
+  image_url = ImageDownloader.download_image(url)
 
   amazon = AmazonLabels.labels_for_image("tmp/image.jpg")
   google = GoogleLabels.labels_for_image("tmp/image.jpg")
@@ -181,6 +182,7 @@ def process(url)
   most_liked = TagScorer.score_tags(all.uniq)
 
   {
+    image: image_url,
     caption: caption,
     common: common,
     best: best,
@@ -189,9 +191,16 @@ def process(url)
   }
 end
 
-url = "https://www.instagram.com/p/Bat6k0UHemQ/?taken-by=charlieegan3"
-
-get '/hello-world' do
-  "Hello World!"
+get "/" do
+  File.read("index.html")
 end
 
+get "/api" do
+  content_type :json
+
+  if params[:url] && params[:password] == ENV.fetch("PASSWORD")
+    process(params[:url]).to_json
+  else
+    File.read("example.json")
+  end
+end
